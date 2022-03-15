@@ -134,10 +134,9 @@ class FFMPEG_VideoReader:
     def skip_frames(self, n=1):
         """Reads and throws away n frames"""
         w, h = self.size
-        for i in range(n):
+        for _ in range(n):
             self.proc.stdout.read(self.depth * w * h)
 
-            # self.proc.stdout.flush()
         self.pos += n
 
     def read_frame(self):
@@ -223,8 +222,7 @@ class FFMPEG_VideoReader:
         else:
             # If pos == self.pos + 1, this line has no effect
             self.skip_frames(pos - self.pos - 1)
-            result = self.read_frame()
-            return result
+            return self.read_frame()
 
     def get_frame_number(self, t):
         """Helper method to return the frame number at time ``t``"""
@@ -625,8 +623,7 @@ class FFmpegInfosParser:
         global_data, stream_data = ({"video_found": True}, {})
 
         try:
-            match_video_size = re.search(r" (\d+)x(\d+)[,\s]", line)
-            if match_video_size:
+            if match_video_size := re.search(r" (\d+)x(\d+)[,\s]", line):
                 # size, of the form 460x320 (w x h)
                 stream_data["size"] = [int(num) for num in match_video_size.groups()]
         except Exception:
@@ -675,9 +672,9 @@ class FFmpegInfosParser:
         stream_data["fps"] = fps
 
         if self._current_stream["default"] or "video_size" not in self.result:
-            global_data["video_size"] = stream_data.get("size", None)
+            global_data["video_size"] = stream_data.get("size")
         if self._current_stream["default"] or "video_bitrate" not in self.result:
-            global_data["video_bitrate"] = stream_data.get("bitrate", None)
+            global_data["video_bitrate"] = stream_data.get("bitrate")
         if self._current_stream["default"] or "video_fps" not in self.result:
             global_data["video_fps"] = stream_data["fps"]
 
@@ -691,12 +688,7 @@ class FFmpegInfosParser:
         """Parses number of TBS from a line of the ``ffmpeg -i`` command output."""
         s_tbr = re.search(r" (\d+.?\d*k?) tbr", line).group(1)
 
-        # Sometimes comes as e.g. 12k. We need to replace that with 12000.
-        if s_tbr[-1] == "k":
-            tbr = float(s_tbr[:-1]) * 1000
-        else:
-            tbr = float(s_tbr)
-        return tbr
+        return float(s_tbr[:-1]) * 1000 if s_tbr[-1] == "k" else float(s_tbr)
 
     def parse_duration(self, line):
         """Parse the duration from the line that outputs the duration of
@@ -730,9 +722,7 @@ class FFmpegInfosParser:
 
     def video_metadata_type_casting(self, field, value):
         """Cast needed video metadata fields to other types than the default str."""
-        if field == "rotate":
-            return (field, float(value))
-        return (field, value)
+        return (field, float(value)) if field == "rotate" else (field, value)
 
 
 def ffmpeg_parse_infos(

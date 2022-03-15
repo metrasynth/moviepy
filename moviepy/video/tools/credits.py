@@ -98,8 +98,7 @@ class CreditsClip(TextClip):
                     continue
                 elif line.startswith(".blank"):
                     # ..blank n
-                    for i in range(int(line.split(" ")[1])):
-                        texts.append(["\n", "\n"])
+                    texts.extend(["\n", "\n"] for _ in range(int(line.split(" ")[1])))
                 elif line.startswith(".."):
                     texts.append([line[2:], ""])
                     one_line = True

@@ -11,11 +11,7 @@ def blit(im1, im2, pos=None, mask=None):
     Blits ``im1`` on ``im2`` as position ``pos=(x,y)``, using the
     ``mask`` if provided.
     """
-    if pos is None:
-        pos = (0, 0)  # pragma: no cover
-    else:
-        # Cast to tuple in case pos is not subscriptable.
-        pos = tuple(pos)
+    pos = (0, 0) if pos is None else tuple(pos)
     im2.paste(im1, pos, mask)
     return im2
 

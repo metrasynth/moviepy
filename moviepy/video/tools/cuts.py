@@ -499,15 +499,12 @@ def detect_scenes(
         ]
 
     luminosities = np.array(luminosities, dtype=float)
-    if clip is not None:
-        end = clip.duration
-    else:
-        end = len(luminosities) * (1.0 / fps)
+    end = clip.duration if clip is not None else len(luminosities) * (1.0 / fps)
     luminosity_diffs = abs(np.diff(luminosities))
     avg = luminosity_diffs.mean()
     luminosity_jumps = (
         1 + np.array(np.nonzero(luminosity_diffs > luminosity_threshold * avg))[0]
     )
     timings = [0] + list((1.0 / fps) * luminosity_jumps) + [end]
-    cuts = [(t1, t2) for t1, t2 in zip(timings, timings[1:])]
+    cuts = list(zip(timings, timings[1:]))
     return cuts, luminosities

@@ -134,25 +134,19 @@ def rotate(
 
             if supported:  # if argument supported by PIL version
                 kwargs[PIL_rotate_kw_name] = kw_value
-            else:
-                if kw_value is not None:  # if not default value
-                    warnings.warn(
-                        f"rotate '{kw_name}' argument is not supported"
-                        " by your Pillow version and is being ignored. Minimum"
-                        " Pillow version required:"
-                        f" v{'.'.join(str(n) for n in min_version)}",
-                        UserWarning,
-                    )
+            elif kw_value is not None:  # if not default value
+                warnings.warn(
+                    f"rotate '{kw_name}' argument is not supported"
+                    " by your Pillow version and is being ignored. Minimum"
+                    " Pillow version required:"
+                    f" v{'.'.join(str(n) for n in min_version)}",
+                    UserWarning,
+                )
 
         # PIL expects uint8 type data. However a mask image has values in the
         # range [0, 1] and is of float type.  To handle this we scale it up by
         # a factor 'a' for use with PIL and then back again by 'a' afterwards.
-        if im.dtype == "float64":
-            # this is a mask image
-            a = 255.0
-        else:
-            a = 1
-
+        a = 255.0 if im.dtype == "float64" else 1
         # call PIL.rotate
         return (
             np.array(

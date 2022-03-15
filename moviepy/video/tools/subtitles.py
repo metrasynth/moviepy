@@ -88,8 +88,8 @@ class SubtitlesClip(VideoClip):
                     for ((text_start, text_end), text) in self.subtitles
                     if (text_start <= t < text_end)
                 ]
-                if not sub:
-                    return False
+            if not sub:
+                return False
             sub = sub[0]
             if sub not in self.textclips.keys():
                 self.textclips[sub] = self.make_textclip(sub[1])
@@ -173,8 +173,7 @@ def file_to_subtitles(filename, encoding=None):
     current_text = ""
     with open(filename, "r", encoding=encoding) as file:
         for line in file:
-            times = re.findall("([0-9]*:[0-9]*:[0-9]*,[0-9]*)", line)
-            if times:
+            if times := re.findall("([0-9]*:[0-9]*:[0-9]*,[0-9]*)", line):
                 current_times = [convert_to_seconds(t) for t in times]
             elif line.strip() == "":
                 times_texts.append((current_times, current_text.strip("\n")))

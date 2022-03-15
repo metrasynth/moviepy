@@ -67,18 +67,15 @@ class Clip:
         t : float or tuple or str
           Moment of the clip whose frame will be returned.
         """
-        # Coming soon: smart error handling for debugging at this point
-        if self.memoize:
-            if t == self.memoized_t:
-                return self.memoized_frame
-            else:
-                frame = self.make_frame(t)
-                self.memoized_t = t
-                self.memoized_frame = frame
-                return frame
-        else:
+        if not self.memoize:
             # print(t)
             return self.make_frame(t)
+        if t == self.memoized_t:
+            return self.memoized_frame
+        frame = self.make_frame(t)
+        self.memoized_t = t
+        self.memoized_frame = frame
+        return frame
 
     def transform(self, func, apply_to=None, keep_duration=True):
         """General processing of a clip.
@@ -283,9 +280,9 @@ class Clip:
 
         if change_end:
             self.end = None if (duration is None) else (self.start + duration)
+        elif self.duration is None:
+            raise ValueError("Cannot change clip start when new duration is None")
         else:
-            if self.duration is None:
-                raise ValueError("Cannot change clip start when new duration is None")
             self.start = self.end - duration
 
     @outplace
@@ -358,25 +355,22 @@ class Clip:
         array, returns False if none of the ``t`` is in the clip, else returns a
         vector [b_1, b_2, b_3...] where b_i is true if tti is in the clip.
         """
-        if isinstance(t, np.ndarray):
-            # is the whole list of t outside the clip ?
-            tmin, tmax = t.min(), t.max()
-
-            if (self.end is not None) and (tmin >= self.end):
-                return False
-
-            if tmax < self.start:
-                return False
-
-            # If we arrive here, a part of t falls in the clip
-            result = 1 * (t >= self.start)
-            if self.end is not None:
-                result *= t <= self.end
-            return result
-
-        else:
-
+        if not isinstance(t, np.ndarray):
             return (t >= self.start) and ((self.end is None) or (t < self.end))
+        # is the whole list of t outside the clip ?
+        tmin, tmax = t.min(), t.max()
+
+        if (self.end is not None) and (tmin >= self.end):
+            return False
+
+        if tmax < self.start:
+            return False
+
+        # If we arrive here, a part of t falls in the clip
+        result = 1 * (t >= self.start)
+        if self.end is not None:
+            result *= t <= self.end
+        return result
 
     @convert_parameter_to_seconds(["start_time", "end_time"])
     @apply_to_mask
@@ -561,12 +555,10 @@ class Clip:
         if self_length != other_length:
             return False
 
-        # Make sure that each frame is the same
-        for frame1, frame2 in zip(self.iter_frames(), other.iter_frames()):
-            if not np.array_equal(frame1, frame2):
-                return False
-
-        return True
+        return all(
+            np.array_equal(frame1, frame2)
+            for frame1, frame2 in zip(self.iter_frames(), other.iter_frames())
+        )
 
     # Support the Context Manager protocol, to ensure that resources are cleaned up.
 

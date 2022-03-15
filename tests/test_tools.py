@@ -109,11 +109,8 @@ def test_deprecated_version_of(old_name):
 def test_download_webfile(static_files_server, util, url, expected_result):
     filename = os.path.join(util.TMP_DIR, "moviepy_downloader_test.mp4")
     if os.path.isfile(filename):
-        try:
+        with contextlib.suppress(PermissionError):
             os.remove(filename)
-        except PermissionError:
-            pass
-
     if hasattr(expected_result, "__traceback__") or len(url) == 11:
         if not shutil.which("youtube-dl"):
             with pytest.raises(expected_result):
@@ -135,10 +132,8 @@ def test_download_webfile(static_files_server, util, url, expected_result):
         assert filecmp.cmp(filename, expected_result)
 
     if os.path.isfile(filename):
-        try:
+        with contextlib.suppress(PermissionError):
             os.remove(filename)
-        except PermissionError:
-            pass
 
 
 @pytest.mark.skipif(os.name != "posix", reason="Doesn't works in Windows")
@@ -228,14 +223,13 @@ def test_config(
         with pytest.raises(ffmpeg_binary_error[0]) as exc:
             importlib.import_module("moviepy.config")
         assert ffmpeg_binary_error[1] in str(exc.value)
-    else:
-        if imagemagick_binary_error is not None:
-            with pytest.raises(imagemagick_binary_error[0]) as exc:
-                importlib.import_module("moviepy.config")
-            assert imagemagick_binary_error[1] in str(exc.value)
-        else:
-            importlib.import_module("moviepy.config")
+    elif imagemagick_binary_error is None:
+        importlib.import_module("moviepy.config")
 
+    else:
+        with pytest.raises(imagemagick_binary_error[0]) as exc:
+            importlib.import_module("moviepy.config")
+        assert imagemagick_binary_error[1] in str(exc.value)
     if prev_ffmpeg_binary is not None:
         os.environ["FFMPEG_BINARY"] = prev_ffmpeg_binary
 

@@ -73,7 +73,7 @@ def show(clip, t=0, with_mask=True, interactive=False):
                     x, y = pg.mouse.get_pos()
                     rgb = img[y, x]
                     result.append({"position": (x, y), "color": rgb})
-                    print("position, color : ", "%s, %s" % (str((x, y)), str(rgb)))
+                    print("position, color : ", f"{(x, y)}, {str(rgb)}")
             time.sleep(0.03)
 
 
@@ -124,11 +124,7 @@ def preview(
     >>> clip = VideoFileClip("media/chaplin.mp4")
     >>> clip.preview(fps=10, audio=False)
     """
-    if fullscreen:
-        flags = pg.FULLSCREEN
-    else:
-        flags = 0
-
+    flags = pg.FULLSCREEN if fullscreen else 0
     # compute and splash the first image
     screen = pg.display.set_mode(clip.size, flags)
 

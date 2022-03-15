@@ -185,12 +185,9 @@ def ffmpeg_audiowrite(
     A function that wraps the FFMPEG_AudioWriter to write an AudioClip
     to a file.
     """
-    if write_logfile:
-        logfile = open(filename + ".log", "w+")
-    else:
-        logfile = None
+    logfile = open(f'{filename}.log', "w+") if write_logfile else None
     logger = proglog.default_bar_logger(logger)
-    logger(message="MoviePy - Writing audio in %s" % filename)
+    logger(message=f"MoviePy - Writing audio in {filename}")
     writer = FFMPEG_AudioWriter(
         filename,
         fps,

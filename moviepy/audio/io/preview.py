@@ -63,9 +63,8 @@ def preview(
         chunk = pg.sndarray.make_sound(sndarray)
         while channel.get_queue():
             time.sleep(0.003)
-            if video_flag is not None:
-                if not video_flag.is_set():
-                    channel.stop()
-                    del channel
-                    return
+            if video_flag is not None and not video_flag.is_set():
+                channel.stop()
+                del channel
+                return
         channel.queue(chunk)

@@ -227,8 +227,10 @@ def autoTrack(clip, pattern, tt=None, fps=None, radius=20, xy0=None):
         tt = np.arange(0, clip.duration, 1.0 / fps)
 
     xys = [xy0]
-    for t in tt[1:]:
-        xys.append(findAround(clip.get_frame(t), pattern, xy=xys[-1], r=radius))
+    xys.extend(
+        findAround(clip.get_frame(t), pattern, xy=xys[-1], r=radius)
+        for t in tt[1:]
+    )
 
     xx, yy = zip(*xys)
 

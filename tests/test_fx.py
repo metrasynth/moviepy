@@ -64,9 +64,7 @@ def test_blackwhite():
     # Colors after ``blackwhite`` FX must be inside this dictionary
     # Note: black/white spectrum is made of colors with same numbers
     # [(0, 0, 0), (1, 1, 1), (2, 2, 2)...]
-    bw_color_dict = {}
-    for num in range(0, 256):
-        bw_color_dict[chr(num + 255)] = (num, num, num)
+    bw_color_dict = {chr(num + 255): (num, num, num) for num in range(256)}
     color_dict = bw_color_dict.copy()
     # update dictionary with default BitmapClip color_dict values
     color_dict.update(BitmapClip.DEFAULT_COLOR_DICT)
@@ -79,7 +77,7 @@ def test_blackwhite():
         random_row += char
 
         # random colors in the b/w spectrum
-        color_dict[char] = tuple(random.randint(0, 255) for i in range(3))
+        color_dict[char] = tuple(random.randint(0, 255) for _ in range(3))
 
     # clip converted below to black/white
     clip = BitmapClip([["RGB", random_row]], color_dict=color_dict, fps=1)
@@ -572,7 +570,7 @@ def test_margin(ClipClass, margin_size, margins, color, expected_result):
 )
 def test_mask_and(image_from, duration, color, mask_color, expected_color):
     """Checks ``mask_and`` FX behaviour."""
-    clip_size = tuple(random.randint(3, 10) for i in range(2))
+    clip_size = tuple(random.randint(3, 10) for _ in range(2))
 
     if duration == "random":
         duration = round(random.uniform(0, 0.5), 2)
@@ -629,7 +627,7 @@ def test_mask_color():
 )
 def test_mask_or(image_from, duration, color, mask_color, expected_color):
     """Checks ``mask_or`` FX behaviour."""
-    clip_size = tuple(random.randint(3, 10) for i in range(2))
+    clip_size = tuple(random.randint(3, 10) for _ in range(2))
 
     if duration == "random":
         duration = round(random.uniform(0, 0.5), 2)
@@ -972,10 +970,7 @@ def test_rotate(
 
     # resolve the angle, because if it is a multiple of 90, the rotation
     # can be computed event without an available PIL installation
-    if hasattr(_angle, "__call__"):
-        _resolved_angle = _angle(0)
-    else:
-        _resolved_angle = _angle
+    _resolved_angle = _angle(0) if hasattr(_angle, "__call__") else _angle
     if unit == "rad":
         _resolved_angle = math.degrees(_resolved_angle)
 
@@ -1070,10 +1065,7 @@ def test_rotate_supported_PIL_kwargs(
     assert len(record.list) == len(unsupported_kwargs)
 
     # assert messages contents
-    messages = []
-    for warning in record.list:
-        messages.append(warning.message.args[0])
-
+    messages = [warning.message.args[0] for warning in record.list]
     for unsupported_kwarg in unsupported_kwargs:
         expected_message = (
             f"rotate '{unsupported_kwarg}' argument is not supported by your"
@@ -1283,11 +1275,7 @@ def test_multiply_volume_audioclip(
     else:
         make_frame = lambda t: [np.sin(440 * 2 * np.pi * t)]
 
-    clip = AudioClip(
-        make_frame,
-        duration=duration if duration else 0.1,
-        fps=22050,
-    )
+    clip = AudioClip(make_frame, duration=duration or 0.1, fps=22050)
     clip_array = clip.to_soundarray()
 
     clip_transformed = multiply_volume(
@@ -1574,7 +1562,7 @@ def test_audio_fadein(
     # for each one (almost 1)
     time_foreach_part = (clip_duration - fadein_duration) / n_parts
     start_times = np.arange(fadein_duration, clip_duration, time_foreach_part)
-    for i, start_time in enumerate(start_times):
+    for start_time in start_times:
         end_time = start_time + time_foreach_part
         subclip_max_volume = new_clip.subclip(start_time, end_time).max_volume()
 
@@ -1630,7 +1618,7 @@ def test_audio_fadeout(
     # for each one (almost 1)
     time_foreach_part = (clip_duration - fadeout_duration) / n_parts
     start_times = np.arange(0, clip_duration - fadeout_duration, time_foreach_part)
-    for i, start_time in enumerate(start_times):
+    for start_time in start_times:
         end_time = start_time + time_foreach_part
         subclip_max_volume = new_clip.subclip(start_time, end_time).max_volume()
 

@@ -189,15 +189,11 @@ def test_audioclip_stereo_max_volume(nchannels, channel_muted):
     def make_frame(t):
         frame = []
         # build channels (one of each pair muted)
-        for i in range(int(nchannels / 2)):
+        for _ in range(int(nchannels / 2)):
             if channel_muted == "left":
-                # if muted channel is left, [0, sound, 0, sound...]
-                frame.append(np.sin(t * 0))
-                frame.append(np.sin(440 * 2 * np.pi * t))
+                frame.extend((np.sin(t * 0), np.sin(440 * 2 * np.pi * t)))
             else:
-                # if muted channel is right, [sound, 0, sound, 0...]
-                frame.append(np.sin(440 * 2 * np.pi * t))
-                frame.append(np.sin(t * 0))
+                frame.extend((np.sin(440 * 2 * np.pi * t), np.sin(t * 0)))
         return np.array(frame).T
 
     clip = AudioClip(make_frame, fps=44100, duration=1)

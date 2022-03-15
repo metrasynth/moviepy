@@ -53,11 +53,10 @@ def margin(
         new_w, new_h = w + left + right, h + top + bottom
         if clip.is_mask:
             shape = (new_h, new_w)
-            bg = np.tile(opacity, (new_h, new_w)).astype(float).reshape(shape)
+            return np.tile(opacity, (new_h, new_w)).astype(float).reshape(shape)
         else:
             shape = (new_h, new_w, 3)
-            bg = np.tile(color, (new_h, new_w)).reshape(shape)
-        return bg
+            return np.tile(color, (new_h, new_w)).reshape(shape)
 
     if isinstance(clip, ImageClip):
         im = make_bg(clip.w, clip.h)

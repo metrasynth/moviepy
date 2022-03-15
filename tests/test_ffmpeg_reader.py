@@ -217,12 +217,14 @@ def test_ffmpeg_parse_infos_metadata(util, mono_wave):
         is uppercased in the dictionary. This function is needed because
         some media containers convert to uppercase metadata field names.
         """
-        value = None
-        for d_field, d_value in dictionary.items():
-            if str(d_field).lower() == field:
-                value = d_value
-                break
-        return value
+        return next(
+            (
+                d_value
+                for d_field, d_value in dictionary.items()
+                if str(d_field).lower() == field
+            ),
+            None,
+        )
 
     # assert file metadata
     for field, value in metadata["file"].items():
@@ -255,7 +257,7 @@ def test_ffmpeg_parse_infos_chapters():
     num_chapters_expected = 14
 
     assert len(chapters) == num_chapters_expected
-    for num in range(0, len(chapters)):
+    for num in range(len(chapters)):
         assert chapters[num]["chapter_number"] == num
         assert chapters[num]["end"] == (num + 1) / 10
         assert chapters[num]["start"] == num / 10
@@ -615,11 +617,13 @@ def test_release_of_file_via_close(util):
     red.fps = green.fps = blue.fps = 10
 
     # Repeat this so we can see no conflicts.
-    for i in range(3):
+    for _ in range(3):
         # Get the name of a temporary file we can use.
         local_video_filename = os.path.join(
-            util.TMP_DIR, "test_release_of_file_via_close_%s.mp4" % int(time.time())
+            util.TMP_DIR,
+            f"test_release_of_file_via_close_{int(time.time())}.mp4",
         )
+
 
         clip = clips_array([[red, green, blue]]).with_duration(0.5)
         clip.write_videofile(local_video_filename)
@@ -650,12 +654,12 @@ def test_failure_to_release_file(util):
     """
     # Get the name of a temporary file we can use.
     local_video_filename = os.path.join(
-        util.TMP_DIR, "test_release_of_file_%s.mp4" % int(time.time())
+        util.TMP_DIR, f"test_release_of_file_{int(time.time())}.mp4"
     )
 
-    # Repeat this so we can see that the problems escalate:
-    for i in range(5):
 
+    # Repeat this so we can see that the problems escalate:
+    for _ in range(5):
         # Create a random video file.
         red = ColorClip((256, 200), color=(255, 0, 0))
         green = ColorClip((256, 200), color=(0, 255, 0))
