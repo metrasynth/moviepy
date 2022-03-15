@@ -25,14 +25,8 @@ def test_1(util):
 
 
 def test_2():
-    images = []
-    durations = []
-
-    durations.append(1)
-    images.append("media/python_logo.png")
-    durations.append(2)
-    images.append("media/matplotlib_demo1.png")
-
+    durations = [1, 2]
+    images = ["media/python_logo.png", "media/matplotlib_demo1.png"]
     # images are not the same size..
     with pytest.raises(Exception):
         ImageSequenceClip(images, durations=durations).close()

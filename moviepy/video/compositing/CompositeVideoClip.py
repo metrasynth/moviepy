@@ -67,7 +67,7 @@ class CompositeVideoClip(VideoClip):
             bg_color = 0.0 if is_mask else (0, 0, 0)
 
         fpss = [clip.fps for clip in clips if getattr(clip, "fps", None)]
-        self.fps = max(fpss) if fpss else None
+        self.fps = max(fpss, default=None)
 
         VideoClip.__init__(self)
 
@@ -95,9 +95,7 @@ class CompositeVideoClip(VideoClip):
             self.duration = duration
             self.end = duration
 
-        # compute audio
-        audioclips = [v.audio for v in self.clips if v.audio is not None]
-        if audioclips:
+        if audioclips := [v.audio for v in self.clips if v.audio is not None]:
             self.audio = CompositeAudioClip(audioclips)
 
         # compute mask if necessary

@@ -1,5 +1,6 @@
 """Define general test helper attributes and utilities."""
 
+
 import ast
 import contextlib
 import functools
@@ -23,14 +24,7 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 TMP_DIR = tempfile.gettempdir()  # because tempfile.tempdir is sometimes None
 
 # Arbitrary font used in caption testing.
-if sys.platform in ("win32", "cygwin"):
-    FONT = "Arial"
-    # Even if Windows users install the Liberation fonts, it is called
-    # LiberationMono on Windows, so it doesn't help.
-else:
-    FONT = (
-        "Liberation-Mono"  # This is available in the fonts-liberation package on Linux
-    )
+FONT = "Arial" if sys.platform in ("win32", "cygwin") else "Liberation-Mono"
 
 
 @functools.lru_cache(maxsize=None)
@@ -74,12 +68,11 @@ def get_moviepy_modules():
         moviepy_module = importlib.import_module("moviepy")
 
         modules = pkgutil.walk_packages(
-            path=moviepy_module.__path__,
-            prefix=moviepy_module.__name__ + ".",
+            path=moviepy_module.__path__, prefix=f'{moviepy_module.__name__}.'
         )
 
-        for importer, modname, ispkg in modules:
-            response.append((modname, ispkg))
+
+        response.extend((modname, ispkg) for importer, modname, ispkg in modules)
     return response
 
 
@@ -110,24 +103,20 @@ def get_functions_with_decorator_defined(code, decorator_name):
                         continue
 
                     decorator_argument_names = []
-                    if isinstance(dec.args, ast.List):
-                        for args in dec.args:
+                    for args in dec.args:
+                        if isinstance(dec.args, ast.List):
                             decorator_argument_names.extend(
                                 [e.value for e in args.elts]
                             )
-                    else:
-                        for args in dec.args:
-                            if isinstance(args, (ast.List, ast.Tuple)):
-                                decorator_argument_names.extend(
-                                    [e.value for e in args.elts]
-                                )
-                            else:
-                                decorator_argument_names.append(args.value)
+                        elif isinstance(args, (ast.List, ast.Tuple)):
+                            decorator_argument_names.extend(
+                                [e.value for e in args.elts]
+                            )
+                        else:
+                            decorator_argument_names.append(args.value)
 
                     function_argument_names = [arg.arg for arg in node.args.args]
-                    for arg in node.args.kwonlyargs:
-                        function_argument_names.append(arg.arg)
-
+                    function_argument_names.extend(arg.arg for arg in node.args.kwonlyargs)
                     self.functions_with_decorator.append(
                         {
                             "function_name": node.name,

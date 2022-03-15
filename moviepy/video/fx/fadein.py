@@ -17,8 +17,7 @@ def fadein(clip, duration, initial_color=None):
     def filter(get_frame, t):
         if t >= duration:
             return get_frame(t)
-        else:
-            fading = 1.0 * t / duration
-            return fading * get_frame(t) + (1 - fading) * initial_color
+        fading = 1.0 * t / duration
+        return fading * get_frame(t) + (1 - fading) * initial_color
 
     return clip.transform(filter)

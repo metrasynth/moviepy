@@ -20,8 +20,7 @@ def fadeout(clip, duration, final_color=None):
     def filter(get_frame, t):
         if (clip.duration - t) >= duration:
             return get_frame(t)
-        else:
-            fading = 1.0 * (clip.duration - t) / duration
-            return fading * get_frame(t) + (1 - fading) * final_color
+        fading = 1.0 * (clip.duration - t) / duration
+        return fading * get_frame(t) + (1 - fading) * final_color
 
     return clip.transform(filter)

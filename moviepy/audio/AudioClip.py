@@ -71,10 +71,7 @@ class AudioClip(Clip):
         if make_frame is not None:
             self.make_frame = make_frame
             frame0 = self.get_frame(0)
-            if hasattr(frame0, "__iter__"):
-                self.nchannels = len(list(frame0))
-            else:
-                self.nchannels = 1
+            self.nchannels = len(list(frame0)) if hasattr(frame0, "__iter__") else 1
         if duration is not None:
             self.duration = duration
             self.end = duration
@@ -230,11 +227,7 @@ class AudioClip(Clip):
 
         """
         if not fps:
-            if not self.fps:
-                fps = 44100
-            else:
-                fps = self.fps
-
+            fps = self.fps or 44100
         if codec is None:
             name, ext = os.path.splitext(os.path.basename(filename))
             try:
@@ -297,10 +290,7 @@ class AudioArrayClip(AudioClip):
                 return result
             else:
                 i = int(self.fps * t)
-                if i < 0 or i >= len(self.array):
-                    return 0 * self.array[0]
-                else:
-                    return self.array[i]
+                return 0 * self.array[0] if i < 0 or i >= len(self.array) else self.array[i]
 
         self.make_frame = make_frame
         self.nchannels = len(list(self.get_frame(0)))

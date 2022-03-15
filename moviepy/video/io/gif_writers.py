@@ -106,8 +106,6 @@ def write_gif_with_tempfiles(
         tempfiles.append(name)
         clip.save_frame(name, t, with_mask=True)
 
-    delay = int(100.0 / fps)
-
     if clip.mask is None:
         with_mask = False
 
@@ -116,6 +114,8 @@ def write_gif_with_tempfiles(
             pixel_format = "RGBA" if with_mask else "RGB"
 
         logger(message="MoviePy - - Optimizing GIF with ImageMagick...")
+        delay = int(100.0 / fps)
+
         cmd = (
             [
                 IMAGEMAGICK_BINARY,
@@ -125,19 +125,19 @@ def write_gif_with_tempfiles(
                 "%d" % (2 if dispose else 1),
                 "-loop",
                 "%d" % loop,
-                "%s_GIFTEMP*.png" % file_root,
+                f"{file_root}_GIFTEMP*.png",
                 "-coalesce",
                 "-fuzz",
                 "%02d" % fuzz + "%",
                 "-layers",
-                "%s" % opt,
+                f"{opt}",
                 "-set",
                 "colorspace",
                 pixel_format,
             ]
             + (["-colors", "%d" % colors] if colors is not None else [])
-            + [filename]
-        )
+        ) + [filename]
+
 
     elif program == "ffmpeg":
         if loop:
@@ -154,17 +154,18 @@ def write_gif_with_tempfiles(
             "-r",
             str(fps),
             "-i",
-            file_root + "_GIFTEMP%04d.png",
+            f'{file_root}_GIFTEMP%04d.png',
             "-r",
             str(fps),
             filename,
             "-pix_fmt",
-            (pixel_format),
+            pixel_format,
         ]
+
 
     try:
         subprocess_call(cmd, logger=logger)
-        logger(message="MoviePy - GIF ready: %s." % filename)
+        logger(message=f"MoviePy - GIF ready: {filename}.")
 
     except (IOError, OSError) as err:
 
@@ -387,7 +388,7 @@ def write_gif(
             proc3 = sp.Popen(cmd3, **popen_params)
 
     # We send all the frames to the first process
-    logger(message="MoviePy - Building file  %s" % filename)
+    logger(message=f"MoviePy - Building file  {filename}")
     logger(message="MoviePy - - Generating GIF frames.")
     try:
         for t, frame in clip.iter_frames(
@@ -422,7 +423,7 @@ def write_gif(
         proc2.wait()
         if opt:
             proc3.wait()
-    logger(message="MoviePy - - File ready: %s." % filename)
+    logger(message=f"MoviePy - - File ready: {filename}.")
 
 
 def write_gif_with_image_io(
@@ -447,7 +448,7 @@ def write_gif_with_image_io(
     writer = imageio.save(
         filename, duration=1.0 / fps, quantizer=quantizer, palettesize=colors, loop=loop
     )
-    logger(message="MoviePy - Building file %s with imageio." % filename)
+    logger(message=f"MoviePy - Building file {filename} with imageio.")
 
     for frame in clip.iter_frames(fps=fps, logger=logger, dtype="uint8"):
 

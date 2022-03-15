@@ -62,7 +62,7 @@ def test_ffmpeg_write_video(
         except PermissionError:
             pass
 
-    logfile_name = filename + ".log"
+    logfile_name = f'{filename}.log'
     if os.path.isfile(logfile_name):
         os.remove(logfile_name)
 
@@ -97,14 +97,14 @@ def test_ffmpeg_write_video(
         assert b == 0
 
         r, g, b = final_clip.get_frame(0.1)[0][0]
-        assert r == (0 if not with_mask else 1)
-        assert g == (255 if not with_mask else 1)
+        assert r == (1 if with_mask else 0)
+        assert g == (1 if with_mask else 255)
         assert b == 1
 
         r, g, b = final_clip.get_frame(0.2)[0][0]
         assert r == 0
         assert g == 0
-        assert b == (255 if not with_mask else 0)
+        assert b == (0 if with_mask else 255)
 
     if write_logfile:
         assert os.path.isfile(logfile_name)
@@ -172,8 +172,8 @@ def test_ffmpeg_write_image(util, size, logfile, pixel_format, expected_result):
     assert os.path.isfile(filename)
 
     if logfile:
-        assert os.path.isfile(filename + ".log")
-        os.remove(filename + ".log")
+        assert os.path.isfile(f'{filename}.log')
+        os.remove(f'{filename}.log')
 
     im = Image.open(filename, mode="r")
     for i in range(im.width):

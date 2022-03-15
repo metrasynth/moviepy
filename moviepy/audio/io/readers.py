@@ -179,10 +179,16 @@ class FFMPEG_AudioReader:
             # Check that the requested time is in the valid range
             if not in_time.any():
                 raise IOError(
-                    "Error in file %s, " % (self.filename)
-                    + "Accessing time t=%.02f-%.02f seconds, " % (tt[0], tt[-1])
-                    + "with clip duration=%f seconds, " % self.duration
+                    (
+                        (
+                            f"Error in file {self.filename}, "
+                            + "Accessing time t=%.02f-%.02f seconds, "
+                            % (tt[0], tt[-1])
+                        )
+                        + "with clip duration=%f seconds, " % self.duration
+                    )
                 )
+
 
             # The np.round in the next line is super-important.
             # Removing it results in artifacts in the noise.
@@ -202,13 +208,16 @@ class FFMPEG_AudioReader:
 
             except IndexError as error:
                 warnings.warn(
-                    "Error in file %s, " % (self.filename)
-                    + "At time t=%.02f-%.02f seconds, " % (tt[0], tt[-1])
+                    (
+                        f"Error in file {self.filename}, "
+                        + "At time t=%.02f-%.02f seconds, " % (tt[0], tt[-1])
+                    )
                     + "indices wanted: %d-%d, " % (indices.min(), indices.max())
                     + "but len(buffer)=%d\n" % (len(self.buffer))
                     + str(error),
                     UserWarning,
                 )
+
 
                 # repeat the last frame instead
                 indices[indices >= len(self.buffer)] = len(self.buffer) - 1

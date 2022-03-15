@@ -69,13 +69,12 @@ def audio_video_fx(func, clip, *args, **kwargs):
     can be also used on a video clip, at which case it returns a
     videoclip with unmodified video and modified audio.
     """
-    if hasattr(clip, "audio"):
-        new_clip = clip.copy()
-        if clip.audio is not None:
-            new_clip.audio = func(clip.audio, *args, **kwargs)
-        return new_clip
-    else:
+    if not hasattr(clip, "audio"):
         return func(clip, *args, **kwargs)
+    new_clip = clip.copy()
+    if clip.audio is not None:
+        new_clip.audio = func(clip.audio, *args, **kwargs)
+    return new_clip
 
 
 def preprocess_args(fun, varnames):

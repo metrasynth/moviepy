@@ -236,10 +236,7 @@ def ffmpeg_write_video(
     """
     logger = proglog.default_bar_logger(logger)
 
-    if write_logfile:
-        logfile = open(filename + ".log", "w+")
-    else:
-        logfile = None
+    logfile = open(f'{filename}.log', "w+") if write_logfile else None
     logger(message="Moviepy - Writing video %s\n" % filename)
     if not pixel_format:
         pixel_format = "rgba" if with_mask else "rgb24"
@@ -312,11 +309,7 @@ def ffmpeg_write_image(filename, image, logfile=False, pixel_format=None):
         filename,
     ]
 
-    if logfile:
-        log_file = open(filename + ".log", "w+")
-    else:
-        log_file = sp.PIPE
-
+    log_file = open(f'{filename}.log', "w+") if logfile else sp.PIPE
     popen_params = cross_platform_popen_params(
         {"stdout": sp.DEVNULL, "stderr": log_file, "stdin": sp.PIPE}
     )

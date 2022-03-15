@@ -338,10 +338,7 @@ class VideoClip(Clip):
                 )
 
         if audio_codec is None:
-            if ext in ["ogv", "webm"]:
-                audio_codec = "libvorbis"
-            else:
-                audio_codec = "libmp3lame"
+            audio_codec = "libvorbis" if ext in ["ogv", "webm"] else "libmp3lame"
         elif audio_codec == "raw16":
             audio_codec = "pcm_s16le"
         elif audio_codec == "raw32":
@@ -352,19 +349,21 @@ class VideoClip(Clip):
             (audiofile is None) and (audio is True) and (self.audio is not None)
         )
 
-        if make_audio and temp_audiofile:
-            # The audio will be the clip's audio
-            audiofile = temp_audiofile
-        elif make_audio:
-            audio_ext = find_extension(audio_codec)
-            audiofile = os.path.join(
-                temp_audiofile_path,
-                name + Clip._TEMP_FILES_PREFIX + "wvf_snd.%s" % audio_ext,
-            )
+        if make_audio:
+            if temp_audiofile:
+                # The audio will be the clip's audio
+                audiofile = temp_audiofile
+            else:
+                audio_ext = find_extension(audio_codec)
+                audiofile = os.path.join(
+                    temp_audiofile_path,
+                    name + Clip._TEMP_FILES_PREFIX + f"wvf_snd.{audio_ext}",
+                )
+
 
         # enough cpu for multiprocessing ? USELESS RIGHT NOW, WILL COME AGAIN
         # enough_cpu = (multiprocessing.cpu_count() > 1)
-        logger(message="Moviepy - Building video %s." % filename)
+        logger(message=f"Moviepy - Building video {filename}.")
         if make_audio:
             self.audio.write_audiofile(
                 audiofile,
@@ -392,10 +391,9 @@ class VideoClip(Clip):
             pixel_format=pixel_format,
         )
 
-        if remove_temp and make_audio:
-            if os.path.exists(audiofile):
-                os.remove(audiofile)
-        logger(message="Moviepy - video ready %s" % filename)
+        if remove_temp and make_audio and os.path.exists(audiofile):
+            os.remove(audiofile)
+        logger(message=f"Moviepy - video ready {filename}")
 
     @requires_duration
     @use_clip_fps_by_default
@@ -841,10 +839,7 @@ class VideoClip(Clip):
 
         """
         self.relative_pos = relative
-        if hasattr(pos, "__call__"):
-            self.pos = pos
-        else:
-            self.pos = lambda t: pos
+        self.pos = pos if hasattr(pos, "__call__") else (lambda t: pos)
 
     @apply_to_mask
     @outplace
@@ -875,21 +870,19 @@ class VideoClip(Clip):
         """Return a mask a video clip made from the clip."""
         if self.is_mask:
             return self
-        else:
-            new_clip = self.image_transform(lambda pic: 1.0 * pic[:, :, canal] / 255)
-            new_clip.is_mask = True
-            return new_clip
+        new_clip = self.image_transform(lambda pic: 1.0 * pic[:, :, canal] / 255)
+        new_clip.is_mask = True
+        return new_clip
 
     def to_RGB(self):
         """Return a non-mask video clip made from the mask video clip."""
-        if self.is_mask:
-            new_clip = self.image_transform(
-                lambda pic: np.dstack(3 * [255 * pic]).astype("uint8")
-            )
-            new_clip.is_mask = False
-            return new_clip
-        else:
+        if not self.is_mask:
             return self
+        new_clip = self.image_transform(
+            lambda pic: np.dstack(3 * [255 * pic]).astype("uint8")
+        )
+        new_clip.is_mask = False
+        return new_clip
 
     # ----------------------------------------------------------------
     # Audio
@@ -1045,17 +1038,13 @@ class ImageClip(VideoClip):
 
         if len(img.shape) == 3:  # img is (now) a RGB(a) numpy array
 
-            if img.shape[2] == 4:
-                if fromalpha:
-                    img = 1.0 * img[:, :, 3] / 255
-                elif is_mask:
-                    img = 1.0 * img[:, :, 0] / 255
-                elif transparent:
-                    self.mask = ImageClip(1.0 * img[:, :, 3] / 255, is_mask=True)
-                    img = img[:, :, :3]
-            elif is_mask:
+            if img.shape[2] == 4 and fromalpha:
+                img = 1.0 * img[:, :, 3] / 255
+            elif img.shape[2] == 4 and is_mask or img.shape[2] != 4 and is_mask:
                 img = 1.0 * img[:, :, 0] / 255
-
+            elif img.shape[2] == 4 and transparent:
+                self.mask = ImageClip(1.0 * img[:, :, 3] / 255, is_mask=True)
+                img = img[:, :, :3]
         # if the image was just a 2D mask, it should arrive here
         # unchanged
         self.make_frame = lambda t: img
@@ -1253,10 +1242,10 @@ class TextClip(ImageClip):
                 except TypeError:  # oops, fall back to Python2
                     os.write(temptxt_fd, text)
                 os.close(temptxt_fd)
-            text = "@" + temptxt
+            text = f"@{temptxt}"
         else:
             # use a file instead of a text.
-            text = "@%" + filename
+            text = f"@%{filename}"
 
         if size is not None:
             size = (
@@ -1281,7 +1270,7 @@ class TextClip(ImageClip):
         if stroke_color is not None:
             cmd += ["-stroke", stroke_color, "-strokewidth", "%.01f" % stroke_width]
         if size is not None:
-            cmd += ["-size", "%sx%s" % (size[0], size[1])]
+            cmd += ["-size", f"{size[0]}x{size[1]}"]
         if align is not None:
             cmd += ["-gravity", align]
         if interline is not None:
@@ -1291,12 +1280,7 @@ class TextClip(ImageClip):
             tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
             os.close(tempfile_fd)
 
-        cmd += [
-            "%s:%s" % (method, text),
-            "-type",
-            "truecolormatte",
-            "PNG32:%s" % tempfilename,
-        ]
+        cmd += [f"{method}:{text}", "-type", "truecolormatte", f"PNG32:{tempfilename}"]
 
         if print_cmd:
             print(" ".join(cmd))
@@ -1437,13 +1421,14 @@ class BitmapClip(VideoClip):
         """
         assert fps is not None or duration is not None
 
-        self.color_dict = color_dict if color_dict else self.DEFAULT_COLOR_DICT
+        self.color_dict = color_dict or self.DEFAULT_COLOR_DICT
 
         frame_list = []
         for input_frame in bitmap_frames:
-            output_frame = []
-            for row in input_frame:
-                output_frame.append([self.color_dict[color] for color in row])
+            output_frame = [
+                [self.color_dict[color] for color in row] for row in input_frame
+            ]
+
             frame_list.append(np.array(output_frame))
 
         frame_array = np.array(frame_list)

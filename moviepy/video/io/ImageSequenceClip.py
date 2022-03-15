@@ -106,9 +106,7 @@ class ImageSequenceClip(VideoClip):
         self.sequence = sequence
 
         def find_image_index(t):
-            return max(
-                [i for i in range(len(self.sequence)) if self.images_starts[i] <= t]
-            )
+            return max(i for i in range(len(self.sequence)) if self.images_starts[i] <= t)
 
         if fromfiles:
 

@@ -106,7 +106,7 @@ def html_embed(
     if "Clip" in str(clip.__class__):
         TEMP_PREFIX = "__temp__"
         if isinstance(clip, ImageClip):
-            filename = TEMP_PREFIX + ".png"
+            filename = f'{TEMP_PREFIX}.png'
             kwargs = {"filename": filename, "with_mask": True}
             argnames = inspect.getfullargspec(clip.save_frame).args
             kwargs.update(
@@ -114,12 +114,12 @@ def html_embed(
             )
             clip.save_frame(**kwargs)
         elif isinstance(clip, VideoClip):
-            filename = TEMP_PREFIX + ".mp4"
+            filename = f'{TEMP_PREFIX}.mp4'
             kwargs = {"filename": filename, "preset": "ultrafast"}
             kwargs.update(rd_kwargs)
             clip.write_videofile(**kwargs)
         elif isinstance(clip, AudioClip):
-            filename = TEMP_PREFIX + ".mp3"
+            filename = f'{TEMP_PREFIX}.mp3'
             kwargs = {"filename": filename}
             kwargs.update(rd_kwargs)
             clip.write_audiofile(**kwargs)
@@ -186,7 +186,7 @@ def html_embed(
 
     result = template % {"data": data, "options": options, "ext": ext}
     if center:
-        result = r"<div align=middle>%s</div>" % result
+        result = f"<div align=middle>{result}</div>"
 
     return result
 

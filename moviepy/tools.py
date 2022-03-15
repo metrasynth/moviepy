@@ -116,7 +116,7 @@ def deprecated_version_of(func, old_name):
     ) % (old_name, new_name)
 
     def deprecated_func(*args, **kwargs):
-        warnings.warn("MoviePy: " + warning, PendingDeprecationWarning)
+        warnings.warn(f"MoviePy: {warning}", PendingDeprecationWarning)
         return func(*args, **kwargs)
 
     deprecated_func.__doc__ = warning
